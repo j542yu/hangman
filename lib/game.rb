@@ -2,6 +2,10 @@
 
 require_relative 'hangman_constants'
 
+# This class represents a command-line implementation of the classic Hangman game.
+#
+# In this game, the player attempts to guess a hidden word one letter at a time, with a limited
+# number of incorrect guesses allowed.
 class HangmanGame
   include HangmanConstants
 
@@ -9,6 +13,7 @@ class HangmanGame
     @word = pick_word.split('')
     @guessed_word = Array.new(word.length, '_')
     @num_mistakes = 0
+    @past_guesses = []
   end
 
   attr_reader :word
@@ -20,8 +25,7 @@ class HangmanGame
       guess = player_make_guess(message)
       message = give_feedback(guess)
     end
-    display_current_status
-    # end_game
+    end_game
   end
 
   def pick_word
@@ -32,17 +36,24 @@ class HangmanGame
   def player_make_guess(feedback)
     puts feedback unless feedback.nil?
     puts "\nThe secret word is #{@word.length} letters long."
+    show_past_guesses unless @past_guesses.empty?
     puts 'What letter do you want to test?'
     ask_for_letter_guess
   end
 
-  def ask_for_letter_guess
+  def ask_for_letter_guess # rubocop:disable Metrics/MethodLength
     loop do
       print '=> '
       guess = gets.chomp.downcase
-      return guess if guess.=~(/[a-z]/)
-
-      puts '\nInvalid guess... Please guess a letter from a to z!'
+      if !guess.match?(/[a-z]/)
+        puts "\nInvalid guess... Please guess a letter from a to z!"
+      elsif guess.length != 1
+        puts "\nYou can only guess one letter at a time. Please try again."
+      elsif @past_guesses.include?(guess)
+        puts "\nYou've already tried this letter, it didn't work! Please try again."
+      else
+        return guess
+      end
     end
   end
 
@@ -53,15 +64,18 @@ class HangmanGame
       end
       true
     else
+      @past_guesses << guess
       @num_mistakes += 1
       false
     end
   end
 
   def give_feedback(guess) # rubocop:disable Metrics/MethodLength
+    result = ''
+
     got_correct_letter = validate_and_update(guess)
     if got_correct_letter
-      "\nYay! '#{guess}' is in the secret word"
+      result = "\nYay! '#{guess}' is in the secret word"
     else
       num_mistakes_left = MAX_NUM_MISTAKES - @num_mistakes
       result = "\nUh oh... '#{guess}' isn't in the secret word :("
@@ -70,8 +84,12 @@ class HangmanGame
                 else
                   "\nYou can make #{num_mistakes_left} more mistake(s) before hangman dies."
                 end
-      result
     end
+    result
+  end
+
+  def show_past_guesses
+    puts "\nPast incorrect guesses: '#{@past_guesses.join(', ')}'"
   end
 
   def give_game_intro
@@ -81,7 +99,18 @@ class HangmanGame
     puts 'On your seventh mistake, he dies.'
   end
 
+  def end_game
+    if @num_mistakes == MAX_NUM_MISTAKES
+      display_current_status
+      puts 'You failed! Hangman has died.'
+    else
+      puts 'Congratulations!!! You saved hangman.'
+    end
+    puts "The secret word was '#{@word.join('')}'."
+  end
+
   def display_current_status
+    puts "\n————————————————————————————————————————————————\n"
     puts "\n#{hangman_drawing(@num_mistakes)}\n\n"
 
     return if @num_mistakes == MAX_NUM_MISTAKES

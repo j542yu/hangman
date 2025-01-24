@@ -14,12 +14,14 @@ class HangmanGame
   attr_reader :word
 
   def play
-    feedback = nil
+    message = give_game_intro
     until @guessed_word == @word || @num_mistakes == MAX_NUM_MISTAKES
       display_current_status
-      guess = player_make_guess(feedback)
-      feedback = validate(guess)
+      guess = player_make_guess(message)
+      message = give_feedback(guess)
     end
+    display_current_status
+    # end_game
   end
 
   def pick_word
@@ -44,21 +46,45 @@ class HangmanGame
     end
   end
 
-  def validate(guess)
+  def validate_and_update(guess)
     if @word.include?(guess)
       @guessed_word.each_with_index do |_, index|
         @guessed_word[index] = guess if word[index] == guess
       end
-      "\nYay! '#{guess}' is in the secret word"
+      true
     else
       @num_mistakes += 1
-      "\nUh oh... '#{guess}' isn't in the secret word :(" \
-      "\nYou can make #{MAX_NUM_MISTAKES - @num_mistakes} more mistake(s) before hangman dies."
+      false
     end
   end
 
+  def give_feedback(guess) # rubocop:disable Metrics/MethodLength
+    got_correct_letter = validate_and_update(guess)
+    if got_correct_letter
+      "\nYay! '#{guess}' is in the secret word"
+    else
+      num_mistakes_left = MAX_NUM_MISTAKES - @num_mistakes
+      result = "\nUh oh... '#{guess}' isn't in the secret word :("
+      result += if num_mistakes_left.zero?
+                  'Your next mistake will kill hangman.'
+                else
+                  "\nYou can make #{num_mistakes_left} more mistake(s) before hangman dies."
+                end
+      result
+    end
+  end
+
+  def give_game_intro
+    puts 'Welcome to Hangman!'
+    puts 'The computer will generate a secret code, which you have to guess ' \
+    'letter by letter to save hangman.'
+    puts 'On your seventh mistake, he dies.'
+  end
+
   def display_current_status
-    puts "#{hangman_drawing(@num_mistakes)}\n\n"
+    puts "\n#{hangman_drawing(@num_mistakes)}\n\n"
+
+    return if @num_mistakes == MAX_NUM_MISTAKES
 
     @guessed_word.each do |letter|
       print "#{letter} "

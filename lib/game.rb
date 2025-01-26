@@ -21,6 +21,9 @@ class HangmanGame
   def play
     message = nil
     show_game_intro
+
+    open_saved_game if open_saved_game?
+
     until @guessed_word == @word || @num_mistakes == MAX_NUM_MISTAKES
       display_current_status
       input = prompt_player(message)
@@ -34,16 +37,19 @@ class HangmanGame
     words.select { |word| word.length.between?(MIN_WORD_LENGTH, MAX_WORD_LENGTH) }.sample
   end
 
+  def open_saved_game?
+    puts "\nWould you like to open a saved game? (yes/no)"
+    gets.chomp == 'yes'
+  end
+
   def prompt_player(message)
     puts message unless message.nil?
 
-    show_past_guesses unless @past_guesses.empty?
-
-    show_possible_decisions
-
     loop do
+      show_past_guesses unless @past_guesses.empty?
+      show_possible_decisions
       input = ask_for_decision
-      return input if valid_guess?(input)
+      return input if input != 'save' && valid_guess?(input)
     end
   end
 
@@ -57,7 +63,7 @@ class HangmanGame
   def handle_commands(input)
     if input == 'save'
       save_game
-    elsif input == 'end'
+    elsif input == 'exit'
       exit_game
     end
   end
@@ -91,6 +97,7 @@ class HangmanGame
   def exit_game
     game_over = @num_mistakes == MAX_NUM_MISTAKES || @guessed_word == @word
     if game_over
+      display_current_status
       display_end_message
     else
       display_exit_message

@@ -70,4 +70,28 @@ module HangmanDisplayableMessages
     end
     puts "\n"
   end
+
+  def confirm_saved(filename)
+    # omit 'saves/' and '.json' when displaying filename
+    puts "\nCurrent game successfuly saved as '#{filename[6..-6]}'!"
+  end
+
+  def confirm_opened_save(filename)
+    puts "\n#{filename[..-6]} was successfully opened. Play on!"
+  end
+
+  def warn_no_saves
+    puts "\nHmm... you don't appear to have any saved games. Let's start brand new!"
+  end
+
+  def show_saves(files_array)
+    # remove '.json' from displayed filenames
+    filenames = files_array.sort.map { |filename| filename[..-6] }.join(', ')
+    puts "\nYou have #{files_array.count} save(s):"
+    puts filenames
+  end
+
+  def warn_invalid_filename
+    puts "\nInvalid save file name. Please choose a valid save file."
+  end
 end

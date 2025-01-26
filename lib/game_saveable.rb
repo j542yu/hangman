@@ -4,6 +4,7 @@
 # to save the game and opening a saved game upon launching
 module GameSaveable
   require 'json'
+  SAVE_FOLDER_NAME = 'saves'
 
   def serialize
     obj = {}
@@ -15,11 +16,11 @@ module GameSaveable
   end
 
   def save_game
-    Dir.mkdir('saves') unless Dir.exist?('saves')
+    Dir.mkdir(SAVE_FOLDER_NAME) unless Dir.exist?(SAVE_FOLDER_NAME)
 
     file_contents = serialize
 
-    num_of_saves = Dir.entries('saves').size - 2
+    num_of_saves = Dir.entries(SAVE_FOLDER_NAME).size - 2
 
     filename = "saves/save_#{num_of_saves + 1}.json"
 
@@ -38,12 +39,30 @@ module GameSaveable
   end
 
   def open_saved_game
-    if !Dir.exist?('saves') || Dir.empty?('saves')
+    if !Dir.exist?(SAVE_FOLDER_NAME) || Dir.empty?(SAVE_FOLDER_NAME)
       warn_no_saves
       return
     end
 
-    show_saves
     filename = ask_which_save
+    unserialize(File.read("saves/#{filename}"))
+
+    confirm_opened_save(filename)
+  end
+
+  def ask_which_save
+    files = Dir.children(SAVE_FOLDER_NAME)
+
+    show_saves(files)
+
+    puts "\nWhich save would you like to open?"
+    loop do
+      print '=> '
+      filename = gets.chomp
+      filename = "#{filename}.json"
+      return filename if files.include?(filename)
+
+      warn_invalid_filename
+    end
   end
 end

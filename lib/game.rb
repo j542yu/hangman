@@ -39,7 +39,7 @@ class HangmanGame
 
   def open_saved_game?
     puts "\nWould you like to open a saved game? (yes/no)"
-    gets.chomp == 'yes'
+    gets.chomp.downcase == 'yes'
   end
 
   def prompt_player(message)

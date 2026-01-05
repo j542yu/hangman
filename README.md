@@ -1,10 +1,4 @@
 # Hangman
-## Overview
-Hangman is a classic children's game where one player must guess a secret word letter by letter, 
-but every incorrect guess brings the hangman one step closer to death. If the secret word is correctly
-guessed before hangman dies, the player succeeds!
-
-> Note: This was created as part of The Odin Project's Ruby course in their Ruby on Rails path.
 
 ## **Running the Game**
 
